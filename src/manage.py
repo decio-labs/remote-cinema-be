@@ -5,7 +5,7 @@
 from .config.base import Base
 
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
 
