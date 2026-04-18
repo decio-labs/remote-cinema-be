@@ -1,0 +1,8 @@
+
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h2>Welcome to {{ app_name }}, {{ name }}! 🎉</h2>
+    <p>Your account has been created successfully. You can now start using the platform.</p>
+    <a href="{{ login_url }}" class="btn">Get Started</a>
+{% endblock %}

@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <title>{{ subject | default("Notification") }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0ede8;font-family:Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0ede8;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;width:100%;">
+
+          <!-- ───── HEADER ───── -->
+          <tr>
+            <td style="background-color:#0f1a14;border-radius:16px 16px 0 0;padding:48px 48px 40px;">
+
+              <!-- Logo row -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+                <tr>
+                  <td style="width:32px;height:32px;background-color:#1f9d55;border-radius:8px;text-align:center;vertical-align:middle;">
+                    <span style="color:#ffffff;font-size:18px;font-weight:bold;line-height:32px;">&#10003;</span>
+                  </td>
+                  <td style="padding-left:10px;">
+                    <span style="color:#ffffff;font-size:16px;font-weight:bold;letter-spacing:0.5px;">{{ app_name }}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Category label -->
+              <p style="color:#1f9d55;font-size:11px;letter-spacing:3px;text-transform:uppercase;
+                         margin:0 0 12px;font-weight:600;">
+                {{ email_category | default("Notification") }}
+              </p>
+
+              <!-- Headline -->
+              <h1 style="color:#ffffff;font-size:30px;margin:0;line-height:1.25;
+                          font-family:Georgia,serif;font-weight:normal;">
+                {{ email_headline | default("You have a new message") }}
+              </h1>
+
+            </td>
+          </tr>
+
+          <!-- ───── BODY ───── -->
+          <tr>
+            <td style="background-color:#ffffff;padding:44px 48px;">
+              {% block content %}{% endblock %}
+            </td>
+          </tr>
+
+          <!-- ───── FOOTER ───── -->
+          <tr>
+            <td style="background-color:#0f1a14;border-radius:0 0 16px 16px;padding:24px 48px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <p style="color:#4b5563;font-size:12px;margin:0;">
+                      &copy; {{ year }} {{ app_name }}. All rights reserved.
+                    </p>
+                  </td>
+                  <td align="right">
+                    <a href="#" style="color:#4b5563;font-size:12px;margin-left:20px;text-decoration:underline;">Privacy</a>
+                    <a href="#" style="color:#4b5563;font-size:12px;margin-left:20px;text-decoration:underline;">Unsubscribe</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
