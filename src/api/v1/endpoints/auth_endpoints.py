@@ -8,7 +8,7 @@ from src.schemas.users.auth_schemas import (
 from src.models.users.auth import UserModel
 from src.services.users.user_service import user_service
 
-from fastapi import Depends, APIRouter, status, HTTPException
+from fastapi import Depends, APIRouter, status, HTTPException, BackgroundTasks
 from pydantic import ValidationError
 
 
@@ -22,41 +22,51 @@ def auth_service(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/auth/register", status_code=status.HTTP_201_CREATED, response_model=RegResponse)
-async def create_user_router(payload: RegSchema, service: AuthService = Depends(auth_service)):
+async def create_user_router(
+    payload: RegSchema, background_tasks: BackgroundTasks,
+    service: AuthService = Depends(auth_service)
+):
+
     try:
         payload.model_dump()
     except ValidationError as exc:
         return HTTPException(status_code=400, detail=str(exc))
 
-    return await service.register(payload)
+    return await service.register(payload, background_tasks)
 
 @router.post("/auth/verify", status_code=status.HTTP_200_OK)
-async def verify_user_router(payload: VerifySchema, service: AuthService = Depends(auth_service)):
+async def verify_user_router(
+    payload: VerifySchema, background_tasks: BackgroundTasks,
+    service: AuthService = Depends(auth_service)):
     try:
         payload.model_dump()
     except ValidationError as exc:
         return HTTPException(status_code=400, detail=str(exc))
 
-    return await service.verify(payload)
+    return await service.verify(payload, background_tasks)
 
 @router.post("/auth/resend-otp", status_code=status.HTTP_200_OK)
-async def resend_otp_router(payload: ResendOTPSchema, service: AuthService = Depends(auth_service)):
+async def resend_otp_router(
+    payload: ResendOTPSchema, background_tasks: BackgroundTasks,
+    service: AuthService = Depends(auth_service)):
     try:
         payload.model_dump()
     except ValidationError as exc:
         return HTTPException(status_code=400, detail=str(exc))
 
-    return await service.resend_otp(payload)
+    return await service.resend_otp(payload, background_tasks)
 
 
 @router.post("/auth/password-reset-request", status_code=status.HTTP_200_OK)
-async def password_reset_router(payload: ResendOTPSchema, service: AuthService = Depends(auth_service)):
+async def password_reset_router(
+    payload: ResendOTPSchema, background_tasks: BackgroundTasks,
+    service: AuthService = Depends(auth_service)):
     try:
         payload.model_dump()
     except ValidationError as exc:
         return HTTPException(status_code=400, detail=str(exc))
 
-    return await service.password_reset(payload)
+    return await service.password_reset(payload, background_tasks)
 
 @router.post("/auth/password-reset", status_code=status.HTTP_200_OK)
 async def password_reset_confirm_router(payload: PasswordResetSchema, code: str, service: AuthService = Depends(auth_service)):

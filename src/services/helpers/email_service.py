@@ -1,5 +1,4 @@
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 
@@ -14,8 +13,8 @@ class EmailService:
 
     def __init__(self):
         self.api_key =  setting.BREVO_API_KEY
-        self.from_email = setting.FROM_EMAIL
-        self.from_name = setting.FROM_NAME
+        self.from_email = setting.FROMEMAIL
+        self.from_name = setting.FROMNAME
 
     def render_html_template(self, template_name: str, context: dict):
         env = Environment(loader=FileSystemLoader('src/services/helpers/templates'), 
@@ -45,7 +44,7 @@ class EmailService:
             "email": recipient_email
         }]
 
-        email = sib_api_v3_sdk.SendSmtpEmail(
+        email_body = sib_api_v3_sdk.SendSmtpEmail(
             sender=sender,
             to=recipient,
             subject=subject,
@@ -53,7 +52,7 @@ class EmailService:
         )
 
         try:
-            api_response = api_instance.send_transac_email(email)
+            api_response = api_instance.send_transac_email(email_body)
             logger.info(f"Email sent successfully to {recipient_email}. Response: {api_response}")
             return True
         except ApiException as e:
@@ -78,6 +77,7 @@ class EmailService:
                         "email_category": "Security", "email_headline": "Verify your\nidentity", 
                         "support_url": "https://remote-cinema.com/support",}
         )
+
 
     async def send_welcome_email(self, name: str, recipient_email: str):
         await self.send_email(

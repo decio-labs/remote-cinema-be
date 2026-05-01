@@ -14,19 +14,20 @@ from .jwt_service import JWTService, TokenService
 
 from fastapi import HTTPException, status, BackgroundTasks
 from uuid import UUID
+import logging
 
 user_service = UserService
 otp_service = OTPService
 email_service = EmailService
+logger = logging.getLogger(__name__)
 
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.service = user_service(db=db)
         self.otp_service = otp_service(db=db)
         self.email_service = email_service()
-        self.bg_tasks = BackgroundTasks()
 
-    async def register(self, payload: RegSchema):
+    async def register(self, payload: RegSchema, background_tasks: BackgroundTasks):
     
         email, password = payload.email, payload.password
         existing = await self.service.get_user_by_email(email)
@@ -34,7 +35,7 @@ class AuthService:
         if existing:
             email = existing.email
             name = email.split('@')[0]
-            await self.email_service.send_welcome_email(
+            background_tasks.add_task(self.email_service.send_welcome_email,
                 name=name, 
                 recipient_email=email
             )
@@ -46,6 +47,7 @@ class AuthService:
         hashed_password = HashService.hash_password(password)
         user = await self.service.create_user(email, hashed_password)
 
+        logger.info("User Created")
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
@@ -55,15 +57,15 @@ class AuthService:
         
         otp_code = await self.otp_service.create_and_store_otp(user_id)
         user_email = user.email
-        await self.email_service.send_otp_email(
+        background_tasks.add_task(self.email_service.send_otp_email,
             name=user_email.split('@')[0], 
             otp_code=otp_code, 
             recipient_email=user_email
         )
     
-        return user
+        return {"status": True, "details": "Account registered. Check  your email address for verifications code."}
 
-    async def verify(self, payload: VerifySchema):
+    async def verify(self, payload: VerifySchema, background_tasks: BackgroundTasks):
         otp_code = payload.otp_code
 
         is_valid, user_id = await self.otp_service.verify_otp(otp_code)
@@ -75,7 +77,7 @@ class AuthService:
         user = await self.service.activate_user(user_id)
 
         # send a confirmation email here
-        await self.email_service.send_welcome_email(
+        background_tasks.add_task(self.email_service.send_welcome_email,
             name=user.email.split('@')[0],
             recipient_email=user.email
         )
@@ -92,16 +94,16 @@ class AuthService:
         return {"message": "User verified successfully"}
     
 
-    async def resend_otp(self, payload: ResendOTPSchema):
+    async def resend_otp(self, payload: ResendOTPSchema, background_tasks: BackgroundTasks):
         email = payload.email
         user = await self.service.get_user_by_email(email)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, 
-                detail="User not found"
+                detail="Invalid email"
             )
         otp_code = await self.otp_service.create_and_store_otp(user.user_id)
-        await self.email_service.send_otp_email(
+        background_tasks.add_task(self.email_service.send_otp_email,
             name=email.split('@')[0], 
             otp_code=otp_code, 
             recipient_email=email
@@ -109,18 +111,18 @@ class AuthService:
         return {"message": "OTP resent successfully"}
     
 
-    async def password_reset(self, payload: ResendOTPSchema):
+    async def password_reset(self, payload: ResendOTPSchema, background_tasks: BackgroundTasks):
         user_email = payload.email
         
         user = await self.service.get_user_by_email(user_email)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, 
-                detail="User not found"
+                detail="invalid email address"
             )
         otp_code = await self.otp_service.create_and_store_otp(user.user_id)
 
-        await self.email_service.send_password_reset_email(
+        background_tasks.add_task(self.email_service.send_password_reset_email,
             name=user_email.split('@')[0], 
             reset_code=otp_code, 
             recipient_email=user_email
@@ -157,7 +159,7 @@ class AuthService:
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, 
-                detail="User not found"
+                detail="Invalid credentials"
             )
 
         if not user.is_active or not user.is_verified:
@@ -179,6 +181,9 @@ class AuthService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
                 detail="Failed to generate authentication tokens: " + str(e)
             )
+
+        user.last_login = datetime.now()
+        self.service.db.commit()
 
         return tokens
             

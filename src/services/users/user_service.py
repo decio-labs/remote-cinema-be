@@ -64,14 +64,12 @@ class UserService:
         
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
-
         if not user:
             return None
     
         try:
             start_date = datetime.now()
             end_date = start_date + timedelta(days=self.trail_period_days)
-
             user_subscription = Subscription(
                 user_id=user.user_id,
                 plan_id=plan.plan_id,

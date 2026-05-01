@@ -8,8 +8,8 @@ class Setting(BaseSettings):
     DATABASE_URL: str
     OTP_Expiry: int
     BREVO_API_KEY: str
-    FROM_EMAIL: str = "remote-cinema@example.com"
-    FROM_NAME: str = "Remote Cinema"
+    FROMEMAIL: str 
+    FROMNAME: str
     APP_NAME: str = "Remote Cinema"
     TRIAL_PERIOD_DAYS: int = 5
     BASE_URL: str = "http://127.0.0.1:8000"

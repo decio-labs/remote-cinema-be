@@ -118,7 +118,6 @@ class JWTService:
         stmt = select(RefreshToken).where(RefreshToken.refresh_id == jti)
         result = await self.db.execute(stmt)
         token_entry = result.scalar_one_or_none()
-        print("Refresh Token", token_entry)
         return token_entry
 
     async def revoke_refresh_token(self, jti: str):
