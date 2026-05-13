@@ -34,7 +34,7 @@ async def create_user_router(
 
     return await service.register(payload, background_tasks)
 
-@router.post("/auth/verify", status_code=status.HTTP_200_OK)
+@router.post("/auth/verify-email", status_code=status.HTTP_200_OK)
 async def verify_user_router(
     payload: VerifySchema, background_tasks: BackgroundTasks,
     service: AuthService = Depends(auth_service)):
