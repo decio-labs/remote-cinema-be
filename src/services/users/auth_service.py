@@ -107,7 +107,6 @@ class AuthService:
         )
         return {"message": "OTP resent successfully"}
     
-
     async def password_reset(self, payload: ResendOTPSchema, background_tasks: BackgroundTasks):
         user_email = payload.email
         
