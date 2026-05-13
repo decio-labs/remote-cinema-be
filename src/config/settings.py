@@ -13,7 +13,7 @@ class Setting(BaseSettings):
     FROMNAME: str
     APP_NAME: str = "Remote Cinema"
     TRIAL_PERIOD_DAYS: int = 5
-    BASE_URL: str = "http://127.0.0.1:8000"
+    BASE_URL: str 
     JWT_SECRET_KEY: str
     JWT_REFRESH_SECRET_KEY: str       
     JWT_ALGORITHM: str = "HS256"

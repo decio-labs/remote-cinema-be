@@ -74,6 +74,7 @@ class EmailService:
 
 
     async def send_welcome_email(self, name: str, recipient_email: str):
+        print(self.base_url)
         await self.send_email(
             recipient_email=recipient_email,
             subject="Welcome to Remote Cinema!",
