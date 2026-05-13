@@ -8,6 +8,7 @@ class Setting(BaseSettings):
     DATABASE_URL: str
     OTP_Expiry: int
     BREVO_API_KEY: str
+    BREVO_BASE_URL: str
     FROMEMAIL: str 
     FROMNAME: str
     APP_NAME: str = "Remote Cinema"

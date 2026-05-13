@@ -39,11 +39,8 @@ class AuthService:
                 name=name, 
                 recipient_email=email
             )
-            raise HTTPException(
-                status_code=status.HTTP_200_OK, 
-                detail="A welcome email has already been sent to this address. Please check your inbox."
-            )
-        
+            return {"status": True, "detail": "A welcome email has already been sent to this address. Please check your inbox."}
+            
         hashed_password = HashService.hash_password(password)
         user = await self.service.create_user(email, hashed_password)
 

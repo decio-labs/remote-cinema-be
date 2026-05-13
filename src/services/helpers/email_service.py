@@ -6,6 +6,8 @@ from src.config.settings import setting
 
 from datetime import datetime
 import logging  
+import asyncio
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,29 @@ class EmailService:
         self.api_key =  setting.BREVO_API_KEY
         self.from_email = setting.FROMEMAIL
         self.from_name = setting.FROMNAME
+        self.base_url = setting.BASE_URL
+
+        self.client = httpx.AsyncClient(base_url=setting.BREVO_BASE_URL)
+
+    async def brevo_email_handler(self, recipient_email: str, subject: str, html_content: str):
+        headers = {
+            "accept": "application/json",
+            "api-key": self.api_key,
+            "content-type": "application/json"
+        }
+        payload = {
+            "sender": {"name": self.from_name, "email": self.from_email},
+            "to": [{"email": recipient_email}],
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        try:
+            response = await self.client.post("/smtp/email", json=payload, headers=headers)
+            response.raise_for_status()
+            return True
+        except httpx.HTTPError as e:
+            logger.error(f"Brevo API error: {e}")
+            return False
 
     def render_html_template(self, template_name: str, context: dict):
         env = Environment(loader=FileSystemLoader('src/services/helpers/templates'), 
@@ -27,37 +52,6 @@ class EmailService:
             "year": datetime.now().year
         })
         return template.render(**context)
-    
-
-
-    async def brevo_email_handler(self, recipient_email: str, subject: str, html_content: str):
-        # logic to send email using Brevo API
-        configuration = sib_api_v3_sdk.Configuration()
-        configuration.api_key['api-key'] = self.api_key
-        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-
-        sender = {
-            "email": self.from_email,
-            "name": self.from_name
-        }
-        recipient = [{
-            "email": recipient_email
-        }]
-
-        email_body = sib_api_v3_sdk.SendSmtpEmail(
-            sender=sender,
-            to=recipient,
-            subject=subject,
-            html_content=html_content
-        )
-
-        try:
-            api_response = api_instance.send_transac_email(email_body)
-            logger.info(f"Email sent successfully to {recipient_email}. Response: {api_response}")
-            return True
-        except ApiException as e:
-            logger.error(f"Exception when sending email to {recipient_email}: {e}")
-            return False
 
     async def send_email(self, recipient_email: str, subject: str, body: str = None, template_name: str = None, extra_data: dict = {}):
         # email sending logic here
@@ -84,7 +78,7 @@ class EmailService:
             recipient_email=recipient_email,
             subject="Welcome to Remote Cinema!",
             template_name="welcome.html",
-            extra_data={"name": name, "login_url": "https://remote-cinema.com/login"}
+            extra_data={"name": name, "login_url": f"{self.base_url}/api/auth/login"}
         )
 
     async def send_password_reset_email(self, name: str, reset_code: str, recipient_email: str):

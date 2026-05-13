@@ -21,7 +21,7 @@ def auth_service(db: AsyncSession = Depends(get_db)):
 
 
 
-@router.post("/auth/register", status_code=status.HTTP_201_CREATED, response_model=RegResponse)
+@router.post("/auth/register", status_code=status.HTTP_201_CREATED)
 async def create_user_router(
     payload: RegSchema, background_tasks: BackgroundTasks,
     service: AuthService = Depends(auth_service)
