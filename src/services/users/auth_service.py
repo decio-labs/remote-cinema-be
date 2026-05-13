@@ -180,7 +180,7 @@ class AuthService:
             )
 
         user.last_login = datetime.now()
-        self.service.db.commit()
+        await self.service.db.commit()
 
         return tokens
             
