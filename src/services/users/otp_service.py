@@ -28,24 +28,39 @@ class OTPService:
         stmt = select(OneTimePassword).where(OneTimePassword.raw_code == provided_otp)
         result = await self.db.execute(stmt)
         otp_entry = result.scalar_one_or_none()
-        if not otp_entry:
-            return False, None
-        if otp_entry.is_expired():
-            return False, None
-        if otp_entry.is_used:
-            return False, None
-        if not otp_entry.is_active:
-            return False, None
-        is_valid = bcrypt.checkpw(provided_otp.encode('utf-8'), otp_entry.hash_code)
 
-        if is_valid:
-            # Mark the OTP as used and inactive after successful verification
+        is_valid = False
+        message = ""
+        user_id = None
+
+        if not otp_entry:
+            message = "no otp entry found"
+            return is_valid, message, user_id
+
+        if otp_entry.is_expired():
+            message = "otp_instance expired"
+            return is_valid, message, user_id
+
+        if otp_entry.is_used:
+            message = "otp instnace is used"
+            return is_valid, message, user_id
+
+        if not otp_entry.is_active:
+            message = "otp is no longer active"
+            return is_valid, message, user_id
+
+        if bcrypt.checkpw(provided_otp.encode('utf-8'), otp_entry.hash_code):
+            is_valid = True
+            message = "otp is valid"
+            user_id = otp_entry.user_id
             otp_entry.is_used = True
             otp_entry.is_active = False
             await self.db.commit()
             await self.db.refresh(otp_entry)
+        else:
+            message = "invalid otp"
 
-        return is_valid, otp_entry.user_id if is_valid else None
+        return is_valid, message, user_id
 
     async def create_and_store_otp(self, user_id):
         """Creates an OTP, hashes it, and stores it in the database."""
