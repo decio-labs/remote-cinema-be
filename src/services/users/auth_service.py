@@ -73,6 +73,12 @@ class AuthService:
             )
         user = await self.service.activate_user(user_id)
 
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="User not found"
+            )
+        
         # send a confirmation email here
         background_tasks.add_task(self.email_service.send_welcome_email,
             name=user.email.split('@')[0],
