@@ -38,15 +38,15 @@ class OTPService:
             return is_valid, message, user_id
 
         if otp_entry.is_expired():
-            message = "otp_instance expired"
+            message = "otp_instance has expired"
             return is_valid, message, user_id
 
         if otp_entry.is_used:
-            message = "otp instnace is used"
+            message = "otp_instance has already been used"
             return is_valid, message, user_id
 
         if not otp_entry.is_active:
-            message = "otp is no longer active"
+            message = "otp_instance is no longer active"
             return is_valid, message, user_id
 
         if bcrypt.checkpw(provided_otp.encode('utf-8'), otp_entry.hash_code):

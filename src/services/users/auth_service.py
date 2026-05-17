@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from jose import JWTError, ExpiredSignatureError
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

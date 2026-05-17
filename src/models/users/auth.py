@@ -68,7 +68,7 @@ class OneTimePassword(Base):
     )
 
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime(), default=datetime.now() + timedelta(minutes=setting.OTP_Expiry)
+        DateTime(), default=lambda: datetime.now() + timedelta(minutes=setting.OTP_Expiry)
     )
 
     hash_code: Mapped[bytes] = mapped_column(
@@ -91,8 +91,8 @@ class OneTimePassword(Base):
     
 
     def is_expired(self) -> bool:
+    
         current_datetime = datetime.now()
-
         return current_datetime > self.expires_at
     
 
