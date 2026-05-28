@@ -4,11 +4,11 @@ from src.services.users.user_service import UserService
 from src.services.helpers.dependencies import get_current_user
 from src.schemas.users.auth_schemas import (
     RegResponse, RegSchema, ResendOTPSchema, VerifySchema, PasswordResetSchema,
-    LoginRequest, RefreshRequest)
+    LoginRequest, RefreshRequest, GoogleAuth)
 from src.models.users.auth import UserModel
 from src.services.users.user_service import user_service
 
-from fastapi import Depends, APIRouter, status, HTTPException, BackgroundTasks
+from fastapi import Depends, APIRouter, status, HTTPException, BackgroundTasks, Request
 from pydantic import ValidationError
 
 
@@ -20,6 +20,14 @@ def auth_service(db: AsyncSession = Depends(get_db)):
     return AuthService(db=db)
 
 
+@router.post("/auth/google", status_code=200)
+async def google_auth(request: Request, service: AuthService = Depends(auth_service)):
+    try:
+        auth_header = request.headers.get("Authorization")
+        token = auth_header.split(" ")[1]
+        return await service.google_register(token)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 @router.post("/auth/register", status_code=status.HTTP_201_CREATED)
 async def create_user_router(

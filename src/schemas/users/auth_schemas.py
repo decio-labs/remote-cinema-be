@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 import email_validator
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 
 class RegSchema(BaseModel):
 
@@ -25,6 +25,8 @@ class RegSchema(BaseModel):
             raise ValueError(exc)
         return valid_email.normalized
 
+class GoogleAuth(BaseModel):
+    code: str
 
 class RegResponse(BaseModel):
     user_id: uuid.UUID

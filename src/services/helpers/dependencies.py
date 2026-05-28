@@ -11,6 +11,12 @@ from uuid import UUID
 
 security = HTTPBearer()
 
+async def get_sub(token):
+    token_service = TokenService()
+    payload = await token_service.decode_access_token(token)
+    user_id = payload.get("sub", None) if payload else None
+    return user_id
+
 class GetUser:
 
     async def __call__(
@@ -27,18 +33,7 @@ class GetUser:
 
         token = credentials.credentials
 
-        # decode Token
-        try:
-            token_service = TokenService()
-            payload = await token_service.decode_access_token(token)
-        except ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Access token has expired")
-        except JWTError as exc:
-            raise HTTPException(status_code=401, detail="Invalid access token"+ str(exc))
-
-        #user instance
-        user_id = payload.get("sub")
-
+        user_id = await get_sub(token)
         user = await user_service.get_user_by_id(user_id)
 
         if not user:

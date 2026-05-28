@@ -2,24 +2,24 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 
-from src.config.settings import setting
+from src.config.settings import  get_settings
 
 from datetime import datetime
 import logging  
 import asyncio
 import httpx
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 
 class EmailService: 
 
     def __init__(self):
-        self.api_key =  setting.BREVO_API_KEY
-        self.from_email = setting.FROMEMAIL
-        self.from_name = setting.FROMNAME
-        self.base_url = setting.BASE_URL
+        self.api_key =   get_settings().BREVO_API_KEY
+        self.from_email =  get_settings().FROMEMAIL
+        self.from_name =  get_settings().FROMNAME
+        self.base_url =  get_settings().BASE_URL
 
-        self.client = httpx.AsyncClient(base_url=setting.BREVO_BASE_URL)
+        self.client = httpx.AsyncClient(base_url= get_settings().BREVO_BASE_URL)
 
     async def brevo_email_handler(self, recipient_email: str, subject: str, html_content: str):
         headers = {
@@ -48,7 +48,7 @@ class EmailService:
         template = env.get_template(f"emails/{template_name}")
 
         context.update({
-            "app_name": setting.APP_NAME,
+            "app_name":  get_settings().APP_NAME,
             "year": datetime.now().year
         })
         return template.render(**context)
@@ -67,7 +67,7 @@ class EmailService:
             recipient_email=recipient_email,
             subject="Your OTP Code",
             template_name="otp.html",
-            extra_data={"name": name, "expiry": setting.OTP_Expiry, "otp_code": otp_code, 
+            extra_data={"name": name, "expiry":  get_settings().OTP_Expiry, "otp_code": otp_code, 
                         "email_category": "Security", "email_headline": "Verify your\nidentity", 
                         "support_url": "https://remote-cinema.com/support",}
         )
@@ -82,14 +82,14 @@ class EmailService:
         )
 
     async def send_password_reset_email(self, name: str, reset_code: str, recipient_email: str):
-        reset_link = f"{setting.BASE_URL}/api/auth/password-reset?code={reset_code}".strip()
+        reset_link = f"{ get_settings().BASE_URL}/api/auth/password-reset?code={reset_code}".strip()
         await self.send_email(
             recipient_email=recipient_email, 
             subject="Password Reset Request",
             template_name="password_reset.html",
             extra_data={"name": name, "reset_link": reset_link,
                         "email_category": "Password Reset", "email_headline": "Change your password", 
-                        "support_url": "https://remote-cinema.com/support", "expiry": setting.OTP_Expiry}
+                        "support_url": "https://remote-cinema.com/support", "expiry":  get_settings().OTP_Expiry}
         )
 
     async def send_subscription_renewal_email(self, name: str, recipient_email: str, renewal_date: datetime):
@@ -105,5 +105,5 @@ class EmailService:
             recipient_email=recipient_email,
             subject="Subscription Alert",
             template_name="subscription_alert.html",
-            extra_data={"name": name, "alert_message": alert_message, "trail_period_days": setting.TRIAL_PERIOD_DAYS}
+            extra_data={"name": name, "alert_message": alert_message, "trail_period_days":  get_settings().TRIAL_PERIOD_DAYS}
         )

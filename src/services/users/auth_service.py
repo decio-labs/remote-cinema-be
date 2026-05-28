@@ -10,6 +10,7 @@ from .otp_service import OTPService
 from ..helpers.hash_management import HashService
 from ..helpers.email_service import EmailService
 from .jwt_service import JWTService, TokenService
+from src.models.users.auth import Provider, UserModel
 
 from fastapi import HTTPException, status, BackgroundTasks
 from uuid import UUID
@@ -18,13 +19,40 @@ import logging
 user_service = UserService
 otp_service = OTPService
 email_service = EmailService
-logger = logging.getLogger(__name__)
+jwt_service = JWTService
+logger = logging.getLogger("uvicorn.error")
 
 class AuthService:
     def __init__(self, db: AsyncSession):
+        self.db = db
         self.service = user_service(db=db)
         self.otp_service = otp_service(db=db)
         self.email_service = email_service()
+
+    async def google_register(self, token: str):
+        is_valid, payload = await self.service.verify_auth_token(token)
+        if not is_valid:
+            raise HTTPException(status_code=500, detail=str(payload))
+        email = payload.get("email", None)
+        if not email:
+            raise HTTPException(status_code=404, detail="email is not present")
+        existing = await self.service.get_user_by_email(email)
+        if existing:
+            tokens = await jwt_service(existing, self.db)._issue_tokens()
+            return tokens
+        
+        new_user: UserModel = await self.service.create_user(
+            email=email, provider=Provider.GOOGLE, google_id=payload.get("sub", None),
+            profile_picture=payload.get("picture", None), name=payload.get("name", None)
+        )
+        if not new_user:
+            raise HTTPException(status_code=400, detail="Failed to create user")
+
+        # active user and  save default subscription
+        await self.service.activate_user(new_user.user_id)
+        await self.service.save_default_subscription(new_user.user_id)
+
+        return await jwt_service(new_user, self.db)._issue_tokens()
 
     async def register(self, payload: RegSchema, background_tasks: BackgroundTasks):
     

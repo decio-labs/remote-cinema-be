@@ -1,4 +1,4 @@
-from src.config.settings import setting
+from src.config.settings import  get_settings
 from src.models.users.auth import UserModel, RefreshToken
 from src.schemas.users.auth_schemas import TokenPair
 from src.services.helpers.hash_management import HashService
@@ -19,35 +19,38 @@ class TokenService:
 
     async def create_access_token(self, token_type="access"):
 
-        current_datetime = datetime.now(timezone.utc)
+        current_datetime = datetime.now()
+        exp  = current_datetime + timedelta(minutes= get_settings().JWT_ACCESS_TOKEN_EXPIRE_MINUTES)    
         payload = {
             "sub": self.user_id,
             "email": self.email,
             "role": "user",
             "jti": str(uuid.uuid4()),
             "iat": int(current_datetime.timestamp()),
-            "exp": int((current_datetime + timedelta(minutes=setting.JWT_REFRESH_TOKEN_EXPIRE_DAYS)).timestamp()),
+            "exp": int(exp.timestamp()),
             "token_type": token_type
         }
 
-        return jwt.encode(payload, setting.JWT_SECRET_KEY, algorithm=setting.JWT_ALGORITHM)
+        return jwt.encode(payload,  get_settings().JWT_SECRET_KEY, algorithm= get_settings().JWT_ALGORITHM)
 
     async def create_refresh_token(self, jti, token_type="refresh"):
-
-        current_datetime = datetime.now(timezone.utc)
+        current_datetime = datetime.now()
+        exp = current_datetime + timedelta(days= get_settings().JWT_REFRESH_TOKEN_EXPIRE_DAYS)
         payload = {
             "sub": self.user_id,
             "jti": str(jti),
             "iat": int(current_datetime.timestamp()),
-            "exp": int((current_datetime + timedelta(days=setting.JWT_REFRESH_TOKEN_EXPIRE_DAYS)).timestamp()),
-            "token_type": token_type
+            "exp": int(exp.timestamp()),
+            "token_type": token_type    
         }
 
-        return jwt.encode(payload, setting.JWT_REFRESH_SECRET_KEY, algorithm=setting.JWT_ALGORITHM)
+        return jwt.encode(payload,  get_settings().JWT_REFRESH_SECRET_KEY, algorithm= get_settings().JWT_ALGORITHM)
 
     async def decode_access_token(self, token: str):
+        if not token:
+            return None
         try:
-            payload = jwt.decode(token, setting.JWT_SECRET_KEY, algorithms=[setting.JWT_ALGORITHM])
+            payload = jwt.decode(token,  get_settings().JWT_SECRET_KEY, algorithms=[ get_settings().JWT_ALGORITHM])
 
             if payload.get("token_type") != "access":
                 raise JWTError("Invalid token type")
@@ -61,7 +64,7 @@ class TokenService:
 
     async def decode_refresh_token(self, token: str):
         try:
-            payload = jwt.decode(token, setting.JWT_REFRESH_SECRET_KEY, algorithms=[setting.JWT_ALGORITHM])
+            payload = jwt.decode(token,  get_settings().JWT_REFRESH_SECRET_KEY, algorithms=[ get_settings().JWT_ALGORITHM])
 
             if payload.get("token_type") != "refresh":
                 raise JWTError("Invalid token type")
@@ -104,7 +107,7 @@ class JWTService:
         saved_token = await self.save_refresh_token(
             refresh_token=refresh_token, user_id=str(self.user.user_id), 
             refresh_id=jti, expire_time=datetime.now(timezone.utc) + \
-                timedelta(days=setting.JWT_REFRESH_TOKEN_EXPIRE_DAYS))
+                timedelta(days= get_settings().JWT_REFRESH_TOKEN_EXPIRE_DAYS))
         
         if not saved_token:
             raise ValueError("Failed to save refresh token")

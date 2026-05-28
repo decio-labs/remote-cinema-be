@@ -4,9 +4,8 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool     
 
 from src.models.base import metadata
-from src.config.settings import setting
+from src.config.settings import  get_settings
 import src.models
-
 from alembic import context
 import os
 
@@ -25,7 +24,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-database_url = setting.DATABASE_URL
+database_url =  get_settings().DATABASE_URL
 if database_url:
     config.set_main_option("sqlalchemy.url", str(database_url))
 

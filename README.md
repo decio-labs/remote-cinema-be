@@ -66,7 +66,7 @@ Set your `DATABASE_URL` in a local `.env` file (not committed) or in your shell.
 DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/remote_cinema
 ```
 
-Run migrations with Alembic after installing requirements and setting `DATABASE_URL`:
+Run migrations with Alembic after installing requirements and  get_settings() `DATABASE_URL`:
 
 ```bash
 source env/bin/activate

@@ -1,9 +1,9 @@
-from .settings import setting
+from .settings import   get_settings
 from sqlalchemy.ext.asyncio import (create_async_engine, 
                                     async_sessionmaker, AsyncSession)
 from sqlalchemy.exc import SQLAlchemyError
 
-DATABASE_URL = setting.DATABASE_URL
+DATABASE_URL =  get_settings().DATABASE_URL
 
 create_engine = create_async_engine(
     DATABASE_URL, echo=False
