@@ -16,7 +16,7 @@ def read_root():
 async def websocket_endpoint(
     websocket: WebSocket,
     room_code: str,
-    db: AssertionError = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 
 ):
     await room_websocket(websocket, room_code, db)

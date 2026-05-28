@@ -6,7 +6,11 @@ from src.services.users.user_service import user_service
 from src.rooms.models import Room
 from sqlalchemy import select
 
+import logging
 import uuid
+
+logger = logging.getLogger("uvicorn.error")
+
 @dataclass
 class GuestUser:
     id: str # Unique identifier for the guest user, e.g., a UUID
@@ -34,12 +38,14 @@ async def get_websocket_user(websocket: WebSocket = Depends(), db: AsyncSession 
     if token:
         # extract user info from token
         token_service = TokenService()
-        payload = await token_service.decode_access_token(token)
-        user_id = payload.get("sub")
-        user = await user_service(db).get_user_by_id(user_id)
-        if user and user.is_active and user.is_verified:
-            return AuthenticatedUser(id=str(user.user_id), user_name=user.email)
-
+        try:
+            payload = await token_service.decode_access_token(token)
+            user_id = payload.get("sub")
+            user = await user_service(db).get_user_by_id(user_id)
+            if user and user.is_active and user.is_verified:
+                return AuthenticatedUser(id=str(user.user_id), user_name=user.name if user.name else user.email)
+        except Exception as exc:
+            raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason=str(exc))
     # If no valid token is found, create a GuestUser instance
     return GuestUser(id=str(uuid.uuid4()), user_name="Guest__" + str(uuid.uuid4())[:8])
 
