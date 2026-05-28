@@ -110,9 +110,9 @@ async def room_websocket(websocket: WebSocket, room_code: str, db: AsyncSession 
 
     user: AuthenticatedUser | GuestUser = await get_websocket_user(websocket, db)
     room: Room = await get_websocket_room(room_code, db)
-    is_host = user.is_authenticated and str(room.host_id) == str(user.id)
-    can_chat = True
-    can_control = is_host
+    is_host: bool = user.is_authenticated and str(room.host_id) == str(user.id)
+    can_chat: bool = True
+    can_control: bool = is_host
 
     # create connection
     await manager.connet(room_code=room_code, user=user, websocket=websocket)
