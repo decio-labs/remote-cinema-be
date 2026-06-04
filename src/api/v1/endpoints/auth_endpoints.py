@@ -22,11 +22,13 @@ def auth_service(db: AsyncSession = Depends(get_db)):
 
 @router.post("/auth/google", status_code=200)
 async def google_auth(request: Request, service: AuthService = Depends(auth_service)):
+    print(request.headers)
     try:
         auth_header = request.headers.get("Authorization")
         token = auth_header.split(" ")[1]
         return await service.google_register(token)
     except Exception as exc:
+        print(exc.args)
         raise HTTPException(status_code=500, detail=str(exc))
 
 @router.post("/auth/register", status_code=status.HTTP_201_CREATED)

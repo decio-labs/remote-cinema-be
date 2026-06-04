@@ -1,5 +1,5 @@
 from fastapi.responses import JSONResponse
-from fastapi import WebSocket, Depends
+from fastapi import WebSocket, Depends, status
 from src.config.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.websocket.redis import close_redis
