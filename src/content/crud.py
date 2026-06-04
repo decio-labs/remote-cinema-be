@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import get_db
 from src.content.models import Content
+from sqlalchemy import select
 
 import uuid
 class ContentCRUDService:
@@ -23,6 +24,12 @@ class ContentCRUDService:
         await self.db.commit()
         await self.db.refresh(content)
         return content
+    
+    async def get_content(self, user_id: uuid.UUID, content_id: uuid.UUID):
+        stmt = select(Content).where(Content.content_id == content_id, Content.uploaded_by_id == user_id)
+        content = await self.db.execute(stmt)
+        return content.scalar_one_or_none()
+
 
 def content_service(db: AsyncSession):
     return ContentCRUDService(db=db)

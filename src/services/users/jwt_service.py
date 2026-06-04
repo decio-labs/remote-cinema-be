@@ -20,7 +20,7 @@ class TokenService:
     async def create_access_token(self, token_type="access"):
 
         current_datetime = datetime.now()
-        exp  = current_datetime + timedelta(minutes= get_settings().JWT_ACCESS_TOKEN_EXPIRE_MINUTES)    
+        exp  = current_datetime + timedelta(days=get_settings().JWT_REFRESH_TOKEN_EXPIRE_DAYS)    
         payload = {
             "sub": self.user_id,
             "email": self.email,
