@@ -55,7 +55,8 @@ class Settings(BaseSettings):
     REDIS_URL: str
     GOOGLE_CLOUD_ID: str
     GOOGLE_CLOUD_SECRET: str
-
+    PAYSTACK_BASE_URL: str
+    PAYSTACK_SECRET_KEY: str = "Paystack_secret_key"
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -1,12 +1,10 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import get_db
 from .schemas import ContentResponse, UserLibraryResponse
 from src.services.helpers.dependencies import get_current_user
 from src.content.services import upload_content, library
 from src.models.users.auth import UserModel
-
-
 
 router = APIRouter(prefix="/content", tags=["content"])
 
