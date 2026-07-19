@@ -36,6 +36,12 @@ class Plan(Base):
     is_default: Mapped[bool] = mapped_column(
         nullable=False, default=False, index=True
     )
+    is_daily: Mapped[bool] = mapped_column(
+        default=False, index=True, nullable=True
+    )
+    is_monthly: Mapped[bool] = mapped_column(
+        default=False, index=True, nullable=True
+    )
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), 
@@ -47,6 +53,7 @@ class Plan(Base):
     )
 
     subscriptions = relationship("Subscription", cascade="all, delete", back_populates="plans")
+    payments  = relationship("Payment", cascade="all, delete", back_populates="plans")
 
     def __repr__(self):
         return f" Plan = {self.name} <-> {self.storage_limit_mb}"
@@ -54,13 +61,14 @@ class Plan(Base):
 
 
 class SubscriptionStatus(enum.Enum):
-    ACTIVE = "active" 
+    ACTIVE = "active"
     TRIALING = "trialing"
     CANCELED = "canceled"
     EXPIRED = "expired"
 
 
 class Subscription(Base):
+
     __tablename__ = "subscriptions"
 
     subscription_id: Mapped[uuid.UUID] = mapped_column(
@@ -92,5 +100,49 @@ class Subscription(Base):
 
 
     def __repr__(self):
-        return f" Sunscriptions = {self.subscriptin_id} <-> {self.status}"
+        return f" Subscriptions = {self.subscriptin_id} <-> {self.status}"
     
+
+class Status(enum.Enum):
+    Pending = 'pending'
+    Success = "success"
+    Failed = "failed"
+    Refunded = 'refunded'
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+    
+    payment_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, 
+        default=uuid.uuid4,  unique=True, index=True
+        )
+    
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.user_id")
+    )
+    plan_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("plans.plan_id")
+    )
+    amount: Mapped[Decimal] = mapped_column(
+        DECIMAL(), nullable=False, index=True
+    )
+    currency: Mapped[str] = mapped_column(
+        String(), default="NGN"
+    )
+    status: Mapped[str] = mapped_column(
+        Enum(Status), default=Status.Pending, index=True
+    )
+
+    reference: Mapped[str] = mapped_column(
+        String(), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    
+    paid_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    user = relationship("UserModel", back_populates="payments")
+    plans = relationship("Plan", back_populates="payments")

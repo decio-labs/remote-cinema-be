@@ -71,6 +71,7 @@ class UserModel(Base):
     contents = relationship("Content", cascade="all, delete", back_populates="uploaded_by")
     refresh_tokens = relationship("RefreshToken", cascade="all, delete", back_populates="owner")
     chats = relationship("Chat", cascade='all, delete', back_populates='user')
+    payments = relationship("Payment", cascade='all, delete', back_populates='user')
 
 
     def __repr__(self):

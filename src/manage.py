@@ -7,8 +7,8 @@ from src.api.v1 import routers
 
 app = FastAPI(
     debug=False, title="Remote Cinema",
-    version="1.0.0", docs_url="/swagger-ui-docs",
-    redoc_url="/swagger-ui-redocs"
+    version="1.0.0", docs_url="/api/docs",
+    redoc_url="/api/redocs"
 )
 
 app.add_middleware(
@@ -20,4 +20,3 @@ app.add_middleware(
 )
 
 app.include_router(routers.api_router)
-
